@@ -17,7 +17,7 @@ namespace tcr {
     struct timestamp {
         uint32_t hours;
         uint32_t mins;
-        double seconds;
+        float seconds;
     };
 
     static color white { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -25,7 +25,7 @@ namespace tcr {
     //yoink
     enum class STR2INT_ERROR { SUCCESS, INT_OVERFLOW, INT_UNDERFLOW, INCONVERTIBLE };
 
-    STR2INT_ERROR str2int (int &i, char const *s, int base = 0)
+    inline STR2INT_ERROR str2int (int &i, char const *s, int base = 0)
     {
         char *end;
         long  l;
@@ -88,7 +88,7 @@ namespace tcr {
             } else err();
         } else {
             std::string strcopy;
-            for(const auto ch : str)    if(!std::isspace(ch))   strcopy.append(ch);
+            for(const auto ch : str)    if(!std::isspace(ch))   strcopy.append(1, ch);
             if(sscanf_s(strcopy.c_str(), "%f,%f,%f,%f", &c[0], &c[1], &c[2], &c[3]) != 4)
             if(sscanf_s(strcopy.c_str(), "%f,%f,%f", &c[0], &c[1], &c[2]) != 3)
             err();

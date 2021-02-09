@@ -31,7 +31,7 @@ tcr::RawChatMessage parseMessage(std::function<std::string(std::string)> nextLin
     }
 
     msg.content = tcr::trim(nextLineChecked("Message content missing"));
-    if(msg.content == "$null")
+    if(msg.content == "$null")  msg.content = "";
     return msg;
 }
 
