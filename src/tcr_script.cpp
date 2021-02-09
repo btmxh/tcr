@@ -1,4 +1,4 @@
-#include "tcr_input.h"
+#include "tcr_script.h"
 
 std::string _nextLineChecked(std::function<std::optional<std::string>()> nextLineFunc, std::string exceptionOutput) {
     if(auto line = nextLineFunc()) {

@@ -1,4 +1,4 @@
-#include "tcr_input.h"
+#include "tcr_script.h"
 
 #include <fstream>
 #include <iostream>
