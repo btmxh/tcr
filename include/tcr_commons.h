@@ -18,6 +18,10 @@ namespace tcr {
         uint32_t hours;
         uint32_t mins;
         float seconds;
+
+        unsigned long long milliseconds() const {
+            return static_cast<unsigned long long>(hours * 3600 + mins * 60 + seconds);
+        }
     };
 
     static color white { 0.0f, 0.0f, 0.0f, 1.0f };

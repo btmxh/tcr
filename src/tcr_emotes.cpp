@@ -50,5 +50,6 @@ tcr::Emote::Emote(std::filesystem::path path) {
         }
 
         gd_close_gif(gif);
+        length = 0; for(auto delay : delays)    length += delay;
     }
 }
