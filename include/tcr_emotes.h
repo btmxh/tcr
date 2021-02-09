@@ -17,7 +17,7 @@ namespace tcr {
     struct Emote {
         uint32_t w, h;
         std::vector<Image> frames;
-        std::vector<float> delays;
+        std::vector<uint32_t> delays;   //in 1/100 s
 
         Emote(std::filesystem::path path);
 
