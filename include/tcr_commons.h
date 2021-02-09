@@ -103,7 +103,7 @@ namespace tcr {
         std::string copy = string;
         size_t i = 0;
         for(;i < copy.size(); i++) {
-            if(std::isspace(copy[i]))   break;
+            if(!std::isspace(copy[i]))  break;
         }
         copy = copy.substr(i);
         i = copy.size();
