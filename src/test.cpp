@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
                 std::cout << "]";
             }
 
-            std::cout << ") " << msg.content << std::endl;
+            std::cout << "): " << msg.content << std::endl;
         }
     } catch (std::runtime_error& err) {
         printf("An error occured: %s\n", err.what());
