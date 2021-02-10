@@ -12,7 +12,7 @@
 namespace tcr {
     static std::string uninitialized = "uninitialized";
 
-    using color = std::array<float, 4>;
+    using color = std::array<uint8_t, 4>;
 
     struct timestamp {
         uint32_t hours;
@@ -24,7 +24,7 @@ namespace tcr {
         }
     };
 
-    static color white { 0.0f, 0.0f, 0.0f, 1.0f };
+    static color white { 255, 255, 255, 255 };
 
     //yoink
     enum class STR2INT_ERROR { SUCCESS, INT_OVERFLOW, INT_UNDERFLOW, INCONVERTIBLE };
@@ -80,24 +80,22 @@ namespace tcr {
             int i;
             if(str2int(i, str.c_str() + 1, 16) != STR2INT_ERROR::SUCCESS)   err();
             if(str.size() == 1 + 6) {
-                c[0] = static_cast<float>(i >> 16) / 255.0f;
-                c[1] = static_cast<float>(i >> 8 & 0xFF) / 255.0f;
-                c[2] = static_cast<float>(i & 0xFF) / 255.0f;
-                c[3] = 1.0f;
+                c[0] = static_cast<uint8_t>(i >> 16);
+                c[1] = static_cast<uint8_t>(i >> 8 & 0xFF);
+                c[2] = static_cast<uint8_t>(i & 0xFF);
+                c[3] = 255;
             } else if(str.size() == 1 + 8) {
-                c[0] = static_cast<float>(i >> 24) / 255.0f;
-                c[1] = static_cast<float>(i >> 16 & 0xFF) / 255.0f;
-                c[2] = static_cast<float>(i >> 8 & 0xFF) / 255.0f;
-                c[3] = static_cast<float>(i & 0xFF) / 255.0f;
+                c[0] = static_cast<uint8_t>(i >> 24);
+                c[1] = static_cast<uint8_t>(i >> 16 & 0xFF);
+                c[2] = static_cast<uint8_t>(i >> 8 & 0xFF);
+                c[3] = static_cast<uint8_t>(i & 0xFF);
             } else err();
         } else {
             std::string strcopy;
             for(const auto ch : str)    if(!std::isspace(ch))   strcopy.append(1, ch);
-            if(sscanf_s(strcopy.c_str(), "%f,%f,%f,%f", &c[0], &c[1], &c[2], &c[3]) != 4)
-            if(sscanf_s(strcopy.c_str(), "%f,%f,%f", &c[0], &c[1], &c[2]) != 3)
+            if(sscanf_s(strcopy.c_str(), "%hhu,%hhu,%hhu,%hhu", &c[0], &c[1], &c[2], &c[3]) != 4)
+            if(sscanf_s(strcopy.c_str(), "%hhu,%hhu,%hhu", &c[0], &c[1], &c[2]) != 3)
             err();
-
-            for(size_t i = 0; i < 4; i++)   if(c[i] > 1.0f)    c[i] /= 255.0f;
         }
         return c;
     }
