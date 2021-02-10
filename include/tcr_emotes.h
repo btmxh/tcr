@@ -9,8 +9,11 @@ namespace tcr {
     struct Image {
         stbi_uc* stbi_data;
 
+        Image() = default;
+        Image(stbi_uc* stbi_data): stbi_data(stbi_data) {}
+
         ~Image() {
-            stbi_image_free(stbi_data);
+            if(stbi_data)   stbi_image_free(stbi_data);
         }
     };
 
@@ -19,6 +22,7 @@ namespace tcr {
         std::vector<Image> frames;
         std::vector<uint32_t> delays;   //in 1/100 s
 
+        Emote() {}
         Emote(std::filesystem::path path);
 
         bool isAnimated() const { return frames.size() != 1; }
@@ -30,8 +34,10 @@ namespace tcr {
     };
     
     struct EmoteManager {
-        std::unordered_map<std::string, Emote> emotes;
+        std::unordered_map<std::string, std::unique_ptr<Emote>> emotes;
         timestamp currentTime;
+
+        EmoteManager(std::filesystem::path emoteDir);
 
         void setCurrentTime(timestamp time) {
             currentTime = time;
@@ -40,15 +46,15 @@ namespace tcr {
         EmoteRenderData getRenderData(std::string emoteName) {
             const auto& emote = emotes[emoteName];
             size_t idx = 0;
-            if(emote.isAnimated()) {
-                auto loopedTime = static_cast<int64_t>((currentTime.milliseconds() / 10) % emote.length);
-                while(idx < emote.frames.size() - 1) {
-                    loopedTime -= emote.delays[idx + 1];
+            if(emote->isAnimated()) {
+                auto loopedTime = static_cast<int64_t>((currentTime.milliseconds() / 10) % emote->length);
+                while(idx < emote->frames.size() - 1) {
+                    loopedTime -= emote->delays[idx + 1];
                     if(loopedTime < 0)  break;
                     idx++;
                 }
             }
-            return { emote.w, emote.h, emote.frames[idx].stbi_data };
+            return { emote->w, emote->h, emote->frames[idx].stbi_data };
         }        
     };
 }
