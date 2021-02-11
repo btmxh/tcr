@@ -2,6 +2,7 @@
 #include "tcr_emotes.h"
 #include "tcr_render.h"
 #include "tcr_text.h"
+#include "tcr_script_align.h"
 
 #include <fstream>
 #include <iostream>
