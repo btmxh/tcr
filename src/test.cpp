@@ -7,19 +7,29 @@
 #include <fstream>
 #include <iostream>
 
-#define TEXT_RENDER_TEST
+#define SCRIPT_IO_TEST
 
 int main(int argc, char** argv) {
 
     try {
 #ifdef SCRIPT_IO_TEST
-        std::ifstream input(argv[1]);
-        tcr::EmoteManager emotes(argv[2]);
+        std::ifstream input("res/script.txt");
+        tcr::EmoteManager emotes("res/emotes");
+
+        tcr::FontContext ctx;
+
+        tcr::Font f100(ctx, "res/fonts/inter/Inter-Regular.ttf");
+        f100.setFontHeight(36);
+        tcr::FontCache fc100(f100);
+
+        tcr::Font f700(ctx, "res/fonts/inter/Inter-Bold.ttf");
+        f700.setFontHeight(36);
+        tcr::FontCache fc700(f700);
 
         auto script = tcr::parse([&]() -> std::optional<std::string> {
             std::string line;
             if(std::getline(input, line))   return line;    else return {};
-        }, emotes);
+        }, emotes, fc700, fc100, 1.5f, 200);
 
         for(const auto& cmsg : script.messages) {
             auto& msg = cmsg.rawMsg;
@@ -38,10 +48,13 @@ int main(int argc, char** argv) {
                 std::cout << "]";
             }
 
-            std::cout << "): ";
-            for(auto& word : cmsg.words) {
-                if(!word.isMsg) std::cout << "(emote)";
-                std::cout << word.word << " ";
+            std::cout << "): " << std::endl;
+            for(auto& line : cmsg.lines) {
+                for(auto& word : line) {
+                    if(word.isEmote) std::cout << "(emote)";
+                    std::cout << word.word << " ";
+                }
+                std::cout << std::endl;
             }
             std::cout << std::endl;
         }
