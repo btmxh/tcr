@@ -53,7 +53,7 @@ tcr::FontCache::FontCache(const tcr::Font& font): face(font.face) {
     }
 }
 
-uint32_t tcr::FontCache::stringWidth(std::string str) {
+uint32_t tcr::FontCache::stringWidth(std::string str) const {
     uint32_t w = 0;
     FT_Vector kerning;
     FT_ULong prev = 0;
@@ -79,10 +79,14 @@ uint32_t tcr::FontCache::stringWidth(std::string str) {
     return w;
 }
 
-uint32_t tcr::FontCache::getKerning(FT_ULong& prevIdx, char currChar) const {
+int32_t tcr::FontCache::getKerning(FT_ULong& prevIdx, char currChar) const {
     FT_ULong currIdx = FT_Get_Char_Index(face, *reinterpret_cast<uint8_t*>(&currChar));
     FT_Vector vector;
     FT_CHECK(FT_Get_Kerning(face, prevIdx, currIdx, FT_KERNING_DEFAULT, &vector));
     prevIdx = currIdx;
     return vector.x >> 6;
+}
+
+uint32_t tcr::FontCache::getSize() const {
+    return static_cast<uint32_t>(face->size->metrics.height);
 }
