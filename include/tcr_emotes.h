@@ -3,14 +3,17 @@
 #include "tcr_commons.h"
 #include "stb_image.h"
 
-#include <filesystem>
-
 namespace tcr {
     struct Image {
         stbi_uc* stbi_data;
 
+<<<<<<< HEAD
+        Image(): Image(nullptr) {};
+        Image(stbi_uc* data): stbi_data(data) {}
+=======
         Image() = default;
         Image(stbi_uc* stbi_data): stbi_data(stbi_data) {}
+>>>>>>> master
 
         ~Image() {
             if(stbi_data)   stbi_image_free(stbi_data);
@@ -56,5 +59,9 @@ namespace tcr {
             }
             return { emote->w, emote->h, emote->frames[idx].stbi_data };
         }        
+
+        bool isEmote(std::string word) const {
+            return emotes.find(word) != emotes.end();
+        }
     };
 }

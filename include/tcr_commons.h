@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <stdexcept>
 #include <sstream>
+#include <filesystem>
 
 namespace tcr {
     static std::string uninitialized = "uninitialized";
@@ -110,7 +111,10 @@ namespace tcr {
         copy = copy.substr(i);
         i = copy.size();
         while(i --> 0) {
-            if(std::isspace(copy[i]))   break;
+            if(!std::isspace(copy[i])) {
+                i++;
+                break;
+            };
         }
         return copy.substr(0, i);
     }

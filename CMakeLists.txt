@@ -17,6 +17,7 @@ endif()
 include(${CMAKE_BINARY_DIR}/conan.cmake)
 
 conan_cmake_run(REQUIRES stb/20200203
+                REQUIRES freetype/2.10.4
                 BASIC_SETUP CMAKE_TARGETS
                 BUILD missing)
 
@@ -27,4 +28,5 @@ include_directories(gifdec)
 
 add_executable(main ${SOURCE_FILES})
 target_link_libraries(main CONAN_PKG::stb)
+target_link_libraries(main CONAN_PKG::freetype)
 target_link_libraries(main gifdec)
