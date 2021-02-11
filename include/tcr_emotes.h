@@ -41,8 +41,14 @@ namespace tcr {
             currentTime = time;
         }
 
-        EmoteRenderData getRenderData(std::string emoteName) {
-            const auto& emote = emotes[emoteName];
+        EmoteRenderData getRenderData(std::string emoteName) const {
+            auto it = emotes.find(emoteName);
+            if(it == emotes.end()) {
+                std::stringstream ss;
+                ss << "Emote '" << emoteName << "' not found";
+                throw std::runtime_error(ss.str());
+            }
+            auto& emote = it->second;
             size_t idx = 0;
             if(emote->isAnimated()) {
                 auto loopedTime = static_cast<int64_t>((currentTime.milliseconds() / 10) % emote->length);
