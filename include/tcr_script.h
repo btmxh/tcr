@@ -28,11 +28,4 @@ namespace tcr {
 
     RawChatScript parse(std::function<std::optional<std::string>()> nextLine);
 
-    struct MsgComp {
-        bool isMsg;
-        std::string word;
-
-        MsgComp(std::string word, const EmoteManager& emotes): word(word), isMsg(!emotes.isEmote(word)) {}
-    };
-
 };
