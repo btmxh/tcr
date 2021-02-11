@@ -37,7 +37,7 @@ namespace tcr {
     public:
         FontCache(const Font& font);
 
-        uint32_t stringWidth(std::string str);
+        uint32_t stringWidth(std::string str) const;
 
         const FontCharacter& getFontCharacter(char c) const {
             auto it = characters.find(c);
@@ -49,6 +49,8 @@ namespace tcr {
             return it->second;
         }
 
-        uint32_t getKerning(FT_ULong& prevIdx, char nextChar) const;
+        int32_t getKerning(FT_ULong& prevIdx, char nextChar) const;
+
+        uint32_t getSize() const;
     };
 }
