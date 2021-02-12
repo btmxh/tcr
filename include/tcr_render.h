@@ -4,6 +4,7 @@
 #include "tcr_emotes.h"
 #include "tcr_script.h"
 #include "tcr_text.h"
+#include "tcr_script_align.h"
 
 namespace tcr {
 
@@ -33,6 +34,8 @@ namespace tcr {
 
         void drawImageUnchecked(int32_t x, int32_t y, uint32_t w, uint32_t h, const uint8_t* img, uint32_t rxmin, uint32_t rymin, uint32_t rxmax, uint32_t rymax) {
             auto cimg = reinterpret_cast<const color*>(img);
+            if(x < 0)   x = 0;
+            if(y < 0)   y = 0;
             for(uint32_t rx = rxmin; rx < rxmax; rx++) for(uint32_t ry = rymin; ry < rymax; ry++) {
                 alphaBlend(pixel(x + rx - rxmin, y + ry - rymin), cimg[rx + ry * w]);
             }
@@ -47,7 +50,7 @@ namespace tcr {
             drawImageUnchecked(x, y, w, h, img, rxmin, rymin, rxmax, rymax); 
         }
 
-        void drawEmote(uint32_t x, uint32_t y, EmoteRenderData data) {
+        void drawEmote(int32_t x, int32_t y, EmoteRenderData data) {
             drawImage(x, y, data.w, data.h, data.pixels);
         }
 
@@ -68,7 +71,7 @@ namespace tcr {
             drawMaskUnchecked(x, y, w, h, mask, c, rxmin, rymin, rxmax, rymax); 
         }
 
-        void drawText(FontCache& font, int32_t& x, int32_t& y, std::string string, const color& c) {
+        void drawText(const FontCache& font, int32_t& x, int32_t& y, const std::string& string, const color& c) {
             FT_ULong prev = 0;
             for(size_t i = 0; i < string.size(); i++) {
                 char ch = string[i];
@@ -76,6 +79,62 @@ namespace tcr {
                 drawMask(x + charData.bearX, y - charData.bearY, charData.w, charData.h, charData.pixels.stbi_data, c);
                 x += charData.advance;
                 if(prev)    x += font.getKerning(prev, ch);
+            }
+        }
+
+        void drawMessage(int32_t x, int32_t y, float lineSpacing, const ChatMsg& msg, const FontCache& ufont, const FontCache& mfont, const EmoteManager& emotes) {
+            auto x0 = x;
+            auto iconYCenter = y - static_cast<int32_t>(ufont.getAscent() + ufont.getDescent()) / 2;
+            auto emoteYCenterOff = -static_cast<int32_t>(mfont.getAscent() + ufont.getDescent()) / 2;
+            auto uws = ufont.getFontCharacter(' ').advance;
+            auto mws = mfont.getFontCharacter(' ').advance;
+            auto lineSpacingPixels = static_cast<uint32_t>(mfont.getSize() * lineSpacing);
+
+            for(auto& icon : msg.rawMsg.author.icons) {
+                auto rdata = emotes.getRenderData(icon);
+                drawImage(x, iconYCenter - rdata.h / 2, rdata.w, rdata.h, rdata.pixels);
+                x += uws + rdata.w;
+            }
+
+            drawText(ufont, x, y, msg.rawMsg.author.name, msg.rawMsg.author.nameColor);
+            drawText(ufont, x, y, ":", white);
+            x += mws;
+
+            for(const auto& line : msg.lines) {
+                for(const auto& word : line) {
+                    if(word.isEmote) {
+                        auto rdata = emotes.getRenderData(word.word);
+                        drawImage(x, y + emoteYCenterOff - rdata.h / 2, rdata.w, rdata.h, rdata.pixels);
+                        x += rdata.w;
+                    } else {
+                        drawText(mfont, x, y, word.word, white);
+                    }
+                    x += mws;
+                }
+                x = x0;
+                y += lineSpacingPixels;
+            }
+        }
+
+        void drawScript(timestamp t, uint32_t& lastMsgCountCache, int32_t x, int32_t y, uint32_t h, float lineSpacing, float msgSpacing, const ChatScript& script, const FontCache& ufont, const FontCache& mfont, const EmoteManager& emotes) {
+            auto linesToRender = static_cast<size_t>(ceilf(h / mfont.getSize() / lineSpacing)) + 2;   //safe
+            while(lastMsgCountCache < script.messages.size()) {
+                if(script.messages[lastMsgCountCache].rawMsg.time.milliseconds() < t.milliseconds())
+                    lastMsgCountCache++;
+            }
+
+            auto msgSpacingPixels = static_cast<uint32_t>(mfont.getSize() * msgSpacing);
+            auto lineHeight = static_cast<uint32_t>(mfont.getSize() * lineSpacing);
+            y += h;
+
+            size_t lines = 0;
+            for(size_t i = lastMsgCountCache; i-->0;) {
+                const auto& m = script.messages[i];
+                y -= static_cast<uint32_t>(lineHeight * (m.lines.size() - 1));
+                drawMessage(x, y, lineSpacing, m, ufont, mfont, emotes);
+                lines += m.lines.size();
+                if(lines > linesToRender)   break;
+                y -= msgSpacingPixels;
             }
         }
 

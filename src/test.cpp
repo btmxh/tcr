@@ -18,56 +18,43 @@ int main(int argc, char** argv) {
 
         tcr::FontContext ctx;
 
+        const uint32_t fontSize = 16;
+        const float lineSpacing = 1.2f, msgSpacing = 1.5f;
+        const uint32_t chatBarWidth = 200;
+
         tcr::Font f100(ctx, "res/fonts/inter/Inter-Regular.ttf");
-        f100.setFontHeight(36);
+        f100.setFontHeight(fontSize);
         tcr::FontCache fc100(f100);
 
         tcr::Font f700(ctx, "res/fonts/inter/Inter-Bold.ttf");
-        f700.setFontHeight(36);
+        f700.setFontHeight(fontSize);
         tcr::FontCache fc700(f700);
 
         auto script = tcr::parse([&]() -> std::optional<std::string> {
             std::string line;
             if(std::getline(input, line))   return line;    else return {};
-        }, emotes, fc700, fc100, 1.5f, 200);
+        }, emotes, fc700, fc100, lineSpacing, chatBarWidth);
 
-        for(const auto& cmsg : script.messages) {
-            auto& msg = cmsg.rawMsg;
-            std::cout << msg.author.name 
-                << " (r=" << static_cast<uint32_t>(msg.author.nameColor[0]) 
-                << ", g=" << static_cast<uint32_t>(msg.author.nameColor[1]) 
-                << ", b=" << static_cast<uint32_t>(msg.author.nameColor[2]) 
-                << ", a=" << static_cast<uint32_t>(msg.author.nameColor[3]) 
-                << ", icons=";
-            
-            if(msg.author.icons.empty()) {
-                std::cout << "empty";
-            } else {
-                std::cout << "[" << msg.author.icons[0];
-                for(size_t i = 1; i < msg.author.icons.size(); i++)    std::cout << ", " << msg.author.icons[i];
-                std::cout << "]";
-            }
+        tcr::Canvas canvas(240, 360);
 
-            std::cout << "): " << std::endl;
-            for(auto& line : cmsg.lines) {
-                for(auto& word : line) {
-                    if(word.isEmote) std::cout << "(emote)";
-                    std::cout << word.word << " ";
-                }
-                std::cout << std::endl;
-            }
-            std::cout << std::endl;
-        }
+        auto start = std::chrono::high_resolution_clock::now();
 
+        canvas.clear(tcr::colorFromString<std::string>("#18181b"));
+        uint32_t scache = 0;
+        canvas.drawScript(tcr::timestamp { 1000, 0, 0 }, scache, 20, 20, 320, lineSpacing, msgSpacing, script, f700, f100, emotes);
+
+        auto end = std::chrono::high_resolution_clock::now();
+
+        printf("Rendering one frame took %lld ms\n", std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
+
+        canvas.outputToImage("test.png");
 #endif
 
 #ifdef IMAGE_IO_TEST
-    tcr::EmoteManager manager { std::filesystem::path(argv[1]) };
-    printf("%d\n", manager.getRenderData(argv[2]).w);
-
+    tcr::EmoteManager manager("res/emotes");
     tcr::Canvas canvas(480, 360);
     canvas.clear(tcr::colorFromString<std::string>("#18181b"));
-    canvas.drawEmote(20, 50, manager.getRenderData(argv[2]));
+    canvas.drawEmote(-10, -10, manager.getRenderData("Widega"));
     canvas.outputToImage("test.png");
 #endif
 

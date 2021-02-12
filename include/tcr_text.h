@@ -39,6 +39,14 @@ namespace tcr {
 
         uint32_t stringWidth(std::string str) const;
 
+        uint32_t getAscent() const {
+            return face->size->metrics.ascender >> 6;
+        }
+
+        int32_t getDescent() const {
+            return face->size->metrics.descender >> 6;
+        }
+
         const FontCharacter& getFontCharacter(char c) const {
             auto it = characters.find(c);
             if(it == characters.end()) {

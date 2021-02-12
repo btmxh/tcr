@@ -88,5 +88,5 @@ int32_t tcr::FontCache::getKerning(FT_ULong& prevIdx, char currChar) const {
 }
 
 uint32_t tcr::FontCache::getSize() const {
-    return static_cast<uint32_t>(face->size->metrics.height);
+    return static_cast<uint32_t>(face->size->metrics.height >> 6);
 }
