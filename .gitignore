@@ -1,2 +1,4 @@
-build/*
-.vscode/*
+build
+.vscode
+output
+out.mp4

@@ -15,15 +15,7 @@ namespace tcr {
 
     using color = std::array<uint8_t, 4>;
 
-    struct timestamp {
-        uint32_t hours;
-        uint32_t mins;
-        float seconds;
-
-        unsigned long long milliseconds() const {
-            return static_cast<unsigned long long>(hours * 3600 + mins * 60 + seconds);
-        }
-    };
+    using timestamp = uint64_t;
 
     static color white { 255, 255, 255, 255 };
 
@@ -51,13 +43,14 @@ namespace tcr {
 
     template<typename _Str>
     timestamp timestampFromString(_Str str) {
-        timestamp time;
-        if(sscanf_s(str.c_str(), "%d:%d:%f", &time.hours, &time.mins, &time.seconds) != 3) {
+        uint32_t hr, mn;
+        float s;
+        if(sscanf_s(str.c_str(), "%d:%d:%f", &hr, &mn, &s) != 3) {
             std::stringstream ss;
             ss << "Invalid timestamp representation: '" << str << "'";
             throw std::runtime_error(ss.str());
         }
-        return time;
+        return static_cast<uint64_t>(hr * 3600000 + mn * 60000 + s * 1000);
     }
 
     template<typename _Str>

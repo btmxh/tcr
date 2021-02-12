@@ -5,6 +5,31 @@
 
 #include <fstream>
 
+namespace tcr {
+    namespace gif {
+        void loadGif(tcr::Emote& emote, std::filesystem::path gifFile) {
+            auto gfs = gifFile.string();
+            std::ifstream file(gfs.c_str(), std::ios::ate | std::ios::binary);
+            std::vector<char> content;
+            content.resize((size_t)file.tellg());
+            file.seekg(0);
+            file.read(content.data(), content.size());
+            int* delays;
+            int w, h, frameCount, comp;
+            emote.frames = stbi_load_gif_from_memory(reinterpret_cast<stbi_uc*>(content.data()), static_cast<int>(content.size()), &delays, &w, &h, &frameCount, &comp, STBI_rgb_alpha);
+            emote.w = static_cast<uint32_t>(w);
+            auto x = stbi_failure_reason();
+            emote.h = static_cast<uint32_t>(h);
+            emote.length = 0;
+            for (int i = 0; i < frameCount; i++) {
+                emote.delays.push_back(delays[i]);
+                emote.length += delays[i];
+            }
+            delete[] delays;
+        }
+    }
+}
+
 tcr::Emote::Emote(std::filesystem::path path) {
     auto ext = path.extension();
     int x, y, comp;
@@ -13,43 +38,12 @@ tcr::Emote::Emote(std::filesystem::path path) {
         ss << "Error loading emote at path '" << path.string() << "'";
         throw std::runtime_error(ss.str());
     };
-    if(ext == "gif") {
-        auto pathstr = path.string();
-        auto gif = gd_open_gif(pathstr.c_str());
-        w = static_cast<uint32_t>(gif->width);
-        h = static_cast<uint32_t>(gif->height);
-        std::vector<uint8_t> buf;
-        buf.resize(w * h * 3);
-
-        while(gd_get_frame(gif)) {
-            gd_render_frame(gif, buf.data());
-            stbi_uc* frame = (stbi_uc*)stbi__malloc(w * h * 4);
-            size_t bptr = 0, fptr = 0;
-            while(bptr < w * h * 3) {
-                if(gd_is_bgcolor(gif, buf.data() + bptr)) {
-                    bptr += 3;
-                    frame[fptr++] = 0;
-                    frame[fptr++] = 0;
-                    frame[fptr++] = 0;
-                    frame[fptr++] = 0;
-                } else {
-                    frame[fptr++] = buf[bptr++];
-                    frame[fptr++] = buf[bptr++];
-                    frame[fptr++] = buf[bptr++];
-                    frame[fptr++] = 255;
-                }
-            }
-            frames.emplace_back(frame);
-            delays.push_back(gif->gce.delay);
-        }
-
-        gd_close_gif(gif);
-        length = 0; for(auto delay : delays)    length += delay;
+    if(ext == ".gif") {
+        tcr::gif::loadGif(*this, path);
     } else {
         auto pathstr = path.string();
-        auto data = stbi_load(pathstr.c_str(), &x, &y, &comp, STBI_rgb_alpha);
-        if(data == nullptr) err();
-        frames.emplace_back(data);
+        frames = stbi_load(pathstr.c_str(), &x, &y, &comp, STBI_rgb_alpha);
+        if(frames == nullptr) err();
         w = static_cast<uint32_t>(x);
         h = static_cast<uint32_t>(y);
     }

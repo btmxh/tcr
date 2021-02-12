@@ -56,6 +56,8 @@ namespace tcr {
 
         void drawMaskUnchecked(int32_t x, int32_t y, uint32_t w, uint32_t h, const uint8_t* mask, const color& c, uint32_t rxmin, uint32_t rymin, uint32_t rxmax, uint32_t rymax) {
             color temp = c; 
+            if(x < 0)   x = 0;
+            if(y < 0)   y = 0;
             for(uint32_t rx = rxmin; rx < rxmax; rx++) for(uint32_t ry = rymin; ry < rymax; ry++) {
                 temp[3] = mask[rx + ry * w];
                 alphaBlend(pixel(x + rx - rxmin, y + ry - rymin), temp);
@@ -76,7 +78,7 @@ namespace tcr {
             for(size_t i = 0; i < string.size(); i++) {
                 char ch = string[i];
                 const auto& charData = font.getFontCharacter(ch);
-                drawMask(x + charData.bearX, y - charData.bearY, charData.w, charData.h, charData.pixels.stbi_data, c);
+                drawMask(x + charData.bearX, y - charData.bearY, charData.w, charData.h, charData.pixels, c);
                 x += charData.advance;
                 if(prev)    x += font.getKerning(prev, ch);
             }
@@ -119,8 +121,9 @@ namespace tcr {
         void drawScript(timestamp t, uint32_t& lastMsgCountCache, int32_t x, int32_t y, uint32_t h, float lineSpacing, float msgSpacing, const ChatScript& script, const FontCache& ufont, const FontCache& mfont, const EmoteManager& emotes) {
             auto linesToRender = static_cast<size_t>(ceilf(h / mfont.getSize() / lineSpacing)) + 2;   //safe
             while(lastMsgCountCache < script.messages.size()) {
-                if(script.messages[lastMsgCountCache].rawMsg.time.milliseconds() < t.milliseconds())
+                if(script.messages[lastMsgCountCache].rawMsg.time < t)
                     lastMsgCountCache++;
+                else break;
             }
 
             auto msgSpacingPixels = static_cast<uint32_t>(mfont.getSize() * msgSpacing);
@@ -128,7 +131,7 @@ namespace tcr {
             y += h;
 
             size_t lines = 0;
-            for(size_t i = lastMsgCountCache; i-->0;) {
+            if(lastMsgCountCache)   for(size_t i = lastMsgCountCache; i-->0;) {
                 const auto& m = script.messages[i];
                 y -= static_cast<uint32_t>(lineHeight * (m.lines.size() - 1));
                 drawMessage(x, y, lineSpacing, m, ufont, mfont, emotes);

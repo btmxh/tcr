@@ -35,13 +35,12 @@ tcr::Font::~Font() {
 tcr::FontCache::FontCache(const tcr::Font& font): face(font.face) {
     for(unsigned char c = 32; c < 128; c++) {
         FT_CHECK(FT_Load_Char(face, c, FT_LOAD_RENDER));
-        characters[c] = FontCharacter {
-            static_cast<uint32_t>(face->glyph->bitmap.width),
-            static_cast<uint32_t>(face->glyph->bitmap.rows),
-            static_cast<uint32_t>(face->glyph->bitmap_left),
-            static_cast<uint32_t>(face->glyph->bitmap_top),
-            static_cast<uint32_t>(face->glyph->advance.x) >> 6,
-        };
+        auto& fc = characters[c];
+        fc.w = static_cast<uint32_t>(face->glyph->bitmap.width);
+        fc.h = static_cast<uint32_t>(face->glyph->bitmap.rows);
+        fc.bearX = static_cast<uint32_t>(face->glyph->bitmap_left);
+        fc.bearY = static_cast<uint32_t>(face->glyph->bitmap_top);
+        fc.advance = static_cast<uint32_t>(face->glyph->advance.x) >> 6;
 
         size_t bufSize = face->glyph->bitmap.width * face->glyph->bitmap.rows;
         auto srcBuf = face->glyph->bitmap.buffer;
@@ -49,7 +48,7 @@ tcr::FontCache::FontCache(const tcr::Font& font): face(font.face) {
         uint8_t maxPxl = 0;
         for(size_t i = 0; i < bufSize; i++) if(srcBuf[i] > maxPxl)  maxPxl = srcBuf[i];
         for(size_t i = 0; i < bufSize; i++) buffer[i] = static_cast<uint8_t>(static_cast<uint32_t>(srcBuf[i]) * 255 / maxPxl);
-        characters[c].pixels.stbi_data = buffer;
+        fc.pixels = buffer;
     }
 }
 

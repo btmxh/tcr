@@ -13,14 +13,16 @@ int main(int argc, char** argv) {
 
     try {
 #ifdef SCRIPT_IO_TEST
+        std::cout << std::filesystem::absolute(".").string();
         std::ifstream input("res/script.txt");
         tcr::EmoteManager emotes("res/emotes");
 
         tcr::FontContext ctx;
 
         const uint32_t fontSize = 16;
-        const float lineSpacing = 1.2f, msgSpacing = 1.5f;
-        const uint32_t chatBarWidth = 200;
+        const float lineSpacing = 1.2f, msgSpacing = 1.8f;
+        const uint32_t off = 20;
+        const uint32_t chatBarWidth = 400, chatBarHeight = 600;
 
         tcr::Font f100(ctx, "res/fonts/inter/Inter-Regular.ttf");
         f100.setFontHeight(fontSize);
@@ -35,19 +37,37 @@ int main(int argc, char** argv) {
             if(std::getline(input, line))   return line;    else return {};
         }, emotes, fc700, fc100, lineSpacing, chatBarWidth);
 
-        tcr::Canvas canvas(240, 360);
+        tcr::Canvas canvas(off * 2 + chatBarWidth, off * 2 + chatBarHeight);
+
+        uint64_t startTime = 0, endTime = 6000;
+        float fps = 30.0f;
+        auto delta = static_cast<uint64_t>(1000.0f / fps);
+        
+        size_t frameNo = 0;
+        auto outputDir = std::filesystem::path("output");
+        const auto bg = tcr::colorFromString<std::string>("#18181b");
+        std::filesystem::create_directory(outputDir);
+        uint32_t cache = 0;
 
         auto start = std::chrono::high_resolution_clock::now();
 
-        canvas.clear(tcr::colorFromString<std::string>("#18181b"));
-        uint32_t scache = 0;
-        canvas.drawScript(tcr::timestamp { 1000, 0, 0 }, scache, 20, 20, 320, lineSpacing, msgSpacing, script, f700, f100, emotes);
+        for(auto time = startTime; time < endTime; time += delta) {
+            std::stringstream ss;
+            ss << "frame-" << frameNo << ".bmp";
+            emotes.setCurrentTime(time);
+            canvas.clear(bg);
+            canvas.drawScript(time, cache, off, off, chatBarHeight, lineSpacing, msgSpacing, script, f700, f100, emotes);
+            frameNo++;
+            canvas.outputToImage(outputDir / ss.str());
+            if(frameNo % 10 == 0)   printf("Rendered frame %lld\n", frameNo);
+        }
 
         auto end = std::chrono::high_resolution_clock::now();
 
-        printf("Rendering one frame took %lld ms\n", std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
+        double time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() / 1000.0;
+        printf("Time ellapsed: %fs", time);
 
-        canvas.outputToImage("test.png");
+        
 #endif
 
 #ifdef IMAGE_IO_TEST

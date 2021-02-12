@@ -1,29 +1,21 @@
 #pragma once
 
 #include "tcr_commons.h"
-#include "stb_image.h"
+#include "stb_image_219_gif_patch.h"
 
 namespace tcr {
-    struct Image {
-        stbi_uc* stbi_data;
-
-        Image(): Image(nullptr) {};
-        Image(stbi_uc* data): stbi_data(data) {}
-
-        ~Image() {
-            if(stbi_data)   stbi_image_free(stbi_data);
-        }
-    };
 
     struct Emote {
         uint32_t w, h, length;
-        std::vector<Image> frames;
-        std::vector<uint32_t> delays;   //in 1/100 s
+        uint8_t* frames;
+        std::vector<uint32_t> delays;
 
         Emote() {}
         Emote(std::filesystem::path path);
 
-        bool isAnimated() const { return frames.size() != 1; }
+        
+
+        bool isAnimated() const { return !delays.empty(); }
     };
 
     struct EmoteRenderData {
@@ -51,14 +43,14 @@ namespace tcr {
             auto& emote = it->second;
             size_t idx = 0;
             if(emote->isAnimated()) {
-                auto loopedTime = static_cast<int64_t>((currentTime.milliseconds() / 10) % emote->length);
-                while(idx < emote->frames.size() - 1) {
-                    loopedTime -= emote->delays[idx + 1];
+                auto loopedTime = static_cast<int64_t>(currentTime) % emote->length;
+                while(idx < emote->delays.size() - 1) {
+                    loopedTime -= emote->delays[idx];
                     if(loopedTime < 0)  break;
                     idx++;
                 }
             }
-            return { emote->w, emote->h, emote->frames[idx].stbi_data };
+            return { emote->w, emote->h, emote->frames + emote->w * emote->h * 4 * idx };
         }        
 
         bool isEmote(std::string word) const {

@@ -26,7 +26,7 @@ namespace tcr {
     struct FontCharacter {
         uint32_t w, h;
         uint32_t bearX, bearY, advance;
-        Image pixels;
+        uint8_t* pixels;
     };
 
     class FontCache {
