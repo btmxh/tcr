@@ -1,8 +1,6 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "tcr_emotes.h"
 
-#include "gifdec.hpp"
-
 #include <fstream>
 
 namespace tcr {
