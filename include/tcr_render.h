@@ -6,6 +6,8 @@
 #include "tcr_text.h"
 #include "tcr_script_align.h"
 
+#include <cmath>
+
 namespace tcr {
 
     class Canvas {

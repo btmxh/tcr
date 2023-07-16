@@ -9,6 +9,8 @@
 #include <stdexcept>
 #include <sstream>
 #include <filesystem>
+#include <climits>
+#include <cstdio>
 
 namespace tcr {
     static std::string uninitialized = "uninitialized";
@@ -45,19 +47,12 @@ namespace tcr {
     timestamp timestampFromString(_Str str) {
         uint32_t hr, mn;
         float s;
-        if(sscanf_s(str.c_str(), "%d:%d:%f", &hr, &mn, &s) != 3) {
+        if(sscanf(str.c_str(), "%d:%d:%f", &hr, &mn, &s) != 3) {
             std::stringstream ss;
             ss << "Invalid timestamp representation: '" << str << "'";
             throw std::runtime_error(ss.str());
         }
         return static_cast<uint64_t>(hr * 3600000 + mn * 60000 + s * 1000);
-    }
-
-    template<typename _Str>
-    _Str timestampToString(timestamp tm) {
-        std::stringstream ss;
-        ss << tm.hours << ":" << tm.mins << ":" << tm.seconds;
-        return ss.str();
     }
 
     template<typename _Str>
@@ -87,8 +82,8 @@ namespace tcr {
         } else {
             std::string strcopy;
             for(const auto ch : str)    if(!std::isspace(ch))   strcopy.append(1, ch);
-            if(sscanf_s(strcopy.c_str(), "%hhu,%hhu,%hhu,%hhu", &c[0], &c[1], &c[2], &c[3]) != 4)
-            if(sscanf_s(strcopy.c_str(), "%hhu,%hhu,%hhu", &c[0], &c[1], &c[2]) != 3)
+            if(sscanf(strcopy.c_str(), "%hhu,%hhu,%hhu,%hhu", &c[0], &c[1], &c[2], &c[3]) != 4)
+            if(sscanf(strcopy.c_str(), "%hhu,%hhu,%hhu", &c[0], &c[1], &c[2]) != 3)
             err();
         }
         return c;
